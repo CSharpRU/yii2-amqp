@@ -1,0 +1,42 @@
+{
+  "name": "csharpru/yii2-amqp",
+  "description": "The AMQP plugin based on pecl-amqp for Yii2",
+  "keywords": [
+    "yii2",
+    "amqp",
+    "pecl"
+  ],
+  "type": "yii2-extension",
+  "license": "BSD-3-Clause",
+  "support": {
+    "issues": "https://github.com/CSharpRU/yii2-amqp/issues",
+    "forum": "http://www.yiiframework.com/forum/",
+    "wiki": "http://www.yiiframework.com/wiki/",
+    "irc": "irc://irc.freenode.net/yii",
+    "source": "https://github.com/CSharpRU/yii2-amqp"
+  },
+  "authors": [
+    {
+      "name": "Yaroslav Lukyanov",
+      "email": "c_sharp@mail.ru"
+    }
+  ],
+  "require": {
+    "php": ">=5.6.0",
+    "ext-amqp": "*",
+    "yiisoft/yii2": ">=2.0.4"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^5.4"
+  },
+  "autoload": {
+    "psr-4": {
+      "yii\\amqp\\": "src/"
+    }
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-master": "2.0.x-dev"
+    }
+  }
+}

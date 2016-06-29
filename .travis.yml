@@ -9,6 +9,6 @@ sudo: required
 services:
   - rabbitmq
 install:
-  - pear install amqp
+  - pecl install amqp
   - composer install -n
   - phpenv rehash

@@ -2,6 +2,7 @@
 
 namespace yii\amqp;
 
+use yii\amqp\helpers\AmqpHelper;
 use yii\amqp\helpers\ExceptionHelper;
 use yii\base\Object;
 
@@ -132,23 +133,13 @@ class Queue extends Object
      */
     public function bind($exchange, $routingKey = null, array $arguments = [])
     {
-        $exchange = $this->getExchangeName($exchange);
+        $exchange = AmqpHelper::getExchangeName($exchange);
 
         try {
             return $this->rawQueue->bind($exchange, $routingKey, $arguments);
         } catch (\Exception $e) {
             ExceptionHelper::throwRightException($e);
         }
-    }
-
-    /**
-     * @param $exchange
-     *
-     * @return string
-     */
-    private function getExchangeName($exchange)
-    {
-        return !($exchange instanceof Exchange) ? $exchange : $exchange->getName();
     }
 
     /**
@@ -181,7 +172,6 @@ class Queue extends Object
         $flags = Amqp::NOPARAM,
         $consumerTag = null
     ) {
-        \Yii::$container->get(Envelope::class);
         try {
             $this->rawQueue->consume(function (\AMQPEnvelope $envelope) use ($callback) {
                 return $callback(Envelope::createFromRaw($envelope), $this);
@@ -271,7 +261,7 @@ class Queue extends Object
      */
     public function unbind($exchange, $routingKey = null, array $arguments = [])
     {
-        $exchange = $this->getExchangeName($exchange);
+        $exchange = AmqpHelper::getExchangeName($exchange);
 
         try {
             return $this->rawQueue->unbind($exchange, $routingKey, $arguments);

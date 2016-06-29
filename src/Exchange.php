@@ -2,6 +2,7 @@
 
 namespace yii\amqp;
 
+use yii\amqp\helpers\AmqpHelper;
 use yii\amqp\helpers\ExceptionHelper;
 use yii\base\Object;
 
@@ -172,32 +173,36 @@ class Exchange extends Object
     }
 
     /**
-     * @param string $exchangeName
-     * @param string $routingKey
-     * @param array  $arguments
+     * @param Exchange|string $exchange
+     * @param string          $routingKey
+     * @param array           $arguments
      *
      * @return bool
      */
-    public function bind($exchangeName, $routingKey = '', array $arguments = [])
+    public function bind($exchange, $routingKey = '', array $arguments = [])
     {
+        $exchange = AmqpHelper::getExchangeName($exchange);
+
         try {
-            return $this->rawExchange->bind($exchangeName, $routingKey, $arguments);
+            return $this->rawExchange->bind($exchange, $routingKey, $arguments);
         } catch (\Exception $e) {
             ExceptionHelper::throwRightException($e);
         }
     }
 
     /**
-     * @param string $exchangeName
-     * @param string $routingKey
-     * @param array  $arguments
+     * @param Exchange|string $exchange
+     * @param string          $routingKey
+     * @param array           $arguments
      *
      * @return bool
      */
-    public function unbind($exchangeName, $routingKey = '', array $arguments = [])
+    public function unbind($exchange, $routingKey = '', array $arguments = [])
     {
+        $exchange = AmqpHelper::getExchangeName($exchange);
+
         try {
-            return $this->rawExchange->unbind($exchangeName, $routingKey, $arguments);
+            return $this->rawExchange->unbind($exchange, $routingKey, $arguments);
         } catch (\Exception $e) {
             ExceptionHelper::throwRightException($e);
         }

@@ -11,5 +11,5 @@ before_install:
   - echo "extension = amqp.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
   - phpenv rehash
 install:
-  - composer require -n fxp/composer-asset-plugin
+  - composer global require -n fxp/composer-asset-plugin
   - composer install -n

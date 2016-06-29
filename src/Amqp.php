@@ -59,7 +59,7 @@ class Amqp extends Component
     /**
      * @var string
      */
-    public $dataType = 'json';
+    public $messageDataType = 'json';
 
     /**
      * @var \AMQPConnection
@@ -73,11 +73,11 @@ class Amqp extends Component
     {
         parent::init();
 
-        $classes = ArrayHelper::getValue(static::$classMap, $this->dataType);
+        $classes = ArrayHelper::getValue(static::$classMap, $this->messageDataType);
 
         if (!$classes) {
-            throw new \RuntimeException(\Yii::t('yii', 'Wrong data type ({dataType})',
-                ['dataType' => $this->dataType]));
+            throw new \RuntimeException(\Yii::t('yii', 'Wrong data type for message ({messageDataType})',
+                ['messageDataType' => $this->messageDataType]));
         }
 
         foreach ($classes as $interface => $class) {

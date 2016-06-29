@@ -7,6 +7,8 @@ php:
 sudo: required
 services:
   - rabbitmq
+before_install:
+  - echo "extension = amqp.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+  - phpenv rehash
 install:
   - composer install -n
-  - phpenv rehash

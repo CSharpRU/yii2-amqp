@@ -125,7 +125,7 @@ class Envelope extends Object
     public static function createFromRaw(\AMQPEnvelope $message)
     {
         return \Yii::createObject([
-            'class' => static::className(),
+            'class' => static::class,
             'body' => $message->getBody(),
             'routingKey' => $message->getRoutingKey(),
             'deliveryTag' => $message->getDeliveryTag(),

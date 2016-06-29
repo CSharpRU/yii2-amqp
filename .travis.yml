@@ -5,7 +5,10 @@ php:
   - '7.0'
   - hhvm
   - nightly
+sudo: required
+services:
+  - rabbitmq
 install:
-  - pear install pear/amqp
+  - pear install amqp
   - composer install -n
   - phpenv rehash

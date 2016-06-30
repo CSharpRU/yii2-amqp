@@ -1,6 +1,11 @@
 Yii Framework 2 AMQP plugin Change Log
 =============================================
 
+2.1.0 June 30, 2016
+-----------------------
+
+- Removed explicit connection to avoid max connections overflow
+
 2.0.0 June 30, 2016
 -----------------------
 

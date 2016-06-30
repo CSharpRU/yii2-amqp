@@ -112,6 +112,10 @@ class Amqp extends Component
             throw new InvalidConfigException(\Yii::t('yii', 'Queue name should be specified'));
         }
 
+        if (!$this->client->isConnected()) {
+            $this->client->connect();
+        }
+
         $this->channel = $this->client->newChannel();
         $this->exchange = $this->client->newExchange($this->channel);
         $this->queue = $this->client->newQueue($this->channel);

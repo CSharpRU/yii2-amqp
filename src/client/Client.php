@@ -112,12 +112,6 @@ class Client extends Component
         $this->initContainer();
 
         $this->rawConnection = new \AMQPConnection($this->buildAmqpCredentialsArray());
-
-        try {
-            $this->rawConnection->connect();
-        } catch (\AMQPConnectionException $e) {
-            ClientHelper::throwRightException($e);
-        }
     }
 
     private function initContainer()
@@ -218,5 +212,56 @@ class Client extends Component
     public function isConnected()
     {
         return $this->rawConnection->isConnected();
+    }
+
+    public function connect()
+    {
+        try {
+            $this->rawConnection->connect();
+        } catch (\AMQPConnectionException $e) {
+            ClientHelper::throwRightException($e);
+        }
+    }
+
+    public function disconnect()
+    {
+        try {
+            $this->rawConnection->disconnect();
+        } catch (\AMQPConnectionException $e) {
+            ClientHelper::throwRightException($e);
+        }
+    }
+
+    public function reconnect()
+    {
+        try {
+            $this->rawConnection->reconnect();
+        } catch (\AMQPConnectionException $e) {
+            ClientHelper::throwRightException($e);
+        }
+    }
+
+    /**
+     * @return int
+     */
+    public function getUsedChannels()
+    {
+        return $this->rawConnection->getUsedChannels();
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getMaxChannels()
+    {
+        return $this->rawConnection->getMaxChannels();
+    }
+
+    /**
+     * @return bool|null
+     */
+    public function isPersistent()
+    {
+        return $this->rawConnection->isPersistent();
     }
 }

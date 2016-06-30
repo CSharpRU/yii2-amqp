@@ -99,7 +99,7 @@ class Client extends Component
     /**
      * @var string
      */
-    public $messageType = 'serialize';
+    public $messageType = self::MESSAGE_TYPE_SERIALIZE;
 
     /**
      * @var MessageEncodeDecodeStrategy

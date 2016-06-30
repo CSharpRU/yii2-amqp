@@ -1,6 +1,11 @@
 Yii Framework 2 AMQP plugin Change Log
 =============================================
 
+2.2.1 June 30, 2016
+-----------------------
+
+- Do not override messageType in Client from Amqp.
+
 2.2.0 June 30, 2016
 -----------------------
 

@@ -65,7 +65,7 @@ class Amqp extends Component
     /**
      * @var string
      */
-    public $messageType = Client::MESSAGE_TYPE_SERIALIZE;
+    public $messageType;
 
     /**
      * @var Channel

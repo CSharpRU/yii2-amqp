@@ -151,5 +151,7 @@ class ClientTest extends TestCase
             'writeTimeout' => static::TIMEOUT,
             'connectTimeout' => static::TIMEOUT,
         ]);
+
+        $this->client->connect();
     }
 }

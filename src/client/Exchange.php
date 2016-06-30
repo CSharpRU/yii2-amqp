@@ -1,9 +1,10 @@
 <?php
 
-namespace yii\amqp;
+namespace yii\amqp\client;
 
+use yii\amqp\client\strategies\MessageEncodeDecodeStrategy;
 use yii\amqp\helpers\AmqpHelper;
-use yii\amqp\helpers\ExceptionHelper;
+use yii\amqp\helpers\ClientHelper;
 use yii\base\Object;
 
 /**
@@ -24,14 +25,14 @@ class Exchange extends Object
     protected $rawExchange;
 
     /**
-     * @var MessageEncodeStrategy
+     * @var MessageEncodeDecodeStrategy
      */
     protected $encodeStrategy;
 
     /**
      * @inheritDoc
      */
-    public function __construct(MessageEncodeStrategy $encodeStrategy, $config = [])
+    public function __construct(MessageEncodeDecodeStrategy $encodeStrategy, $config = [])
     {
         parent::__construct($config);
 
@@ -48,7 +49,7 @@ class Exchange extends Object
         try {
             $this->rawExchange = new \AMQPExchange($this->channel->getRawChannel());
         } catch (\Exception $e) {
-            ExceptionHelper::throwRightException($e);
+            ClientHelper::throwRightException($e);
         }
     }
 
@@ -153,7 +154,7 @@ class Exchange extends Object
         try {
             return $this->rawExchange->declareExchange();
         } catch (\Exception $e) {
-            ExceptionHelper::throwRightException($e);
+            ClientHelper::throwRightException($e);
         }
     }
 
@@ -163,12 +164,12 @@ class Exchange extends Object
      *
      * @return bool
      */
-    public function delete($exchangeName = null, $flags = Amqp::NOPARAM)
+    public function delete($exchangeName = null, $flags = Client::NOPARAM)
     {
         try {
             return $this->rawExchange->delete($exchangeName, $flags);
         } catch (\Exception $e) {
-            ExceptionHelper::throwRightException($e);
+            ClientHelper::throwRightException($e);
         }
     }
 
@@ -186,7 +187,7 @@ class Exchange extends Object
         try {
             return $this->rawExchange->bind($exchange, $routingKey, $arguments);
         } catch (\Exception $e) {
-            ExceptionHelper::throwRightException($e);
+            ClientHelper::throwRightException($e);
         }
     }
 
@@ -204,7 +205,7 @@ class Exchange extends Object
         try {
             return $this->rawExchange->unbind($exchange, $routingKey, $arguments);
         } catch (\Exception $e) {
-            ExceptionHelper::throwRightException($e);
+            ClientHelper::throwRightException($e);
         }
     }
 
@@ -216,13 +217,13 @@ class Exchange extends Object
      *
      * @return bool
      */
-    public function publish($message, $routingKey = null, $flags = Amqp::NOPARAM, array $attributes = [])
+    public function publish($message, $routingKey = null, $flags = Client::NOPARAM, array $attributes = [])
     {
         try {
             return $this->rawExchange->publish($this->encodeStrategy->encode($message), $routingKey, $flags,
                 $attributes);
         } catch (\Exception $e) {
-            ExceptionHelper::throwRightException($e);
+            ClientHelper::throwRightException($e);
         }
     }
 
@@ -235,7 +236,7 @@ class Exchange extends Object
     }
 
     /**
-     * @return Amqp
+     * @return Client
      */
     public function getConnection()
     {

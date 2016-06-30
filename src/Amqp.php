@@ -2,12 +2,13 @@
 
 namespace yii\amqp;
 
-use yii\amqp\helpers\ExceptionHelper;
-use yii\amqp\json\JsonMessageDecodeStrategy;
-use yii\amqp\json\JsonMessageEncodeStrategy;
-use yii\amqp\raw\RawMessageDecodeStrategy;
-use yii\amqp\raw\RawMessageEncodeStrategy;
+use Codeception\Module\Cli;
+use yii\amqp\client\Channel;
+use yii\amqp\client\Client;
+use yii\amqp\client\Exchange;
+use yii\amqp\client\Queue;
 use yii\base\Component;
+use yii\base\InvalidConfigException;
 use yii\helpers\ArrayHelper;
 
 /**
@@ -17,54 +18,75 @@ use yii\helpers\ArrayHelper;
  */
 class Amqp extends Component
 {
-    /** Map for full encapsulation */
-    const NOPARAM = AMQP_NOPARAM;
-    const DURABLE = AMQP_DURABLE;
-    const PASSIVE = AMQP_PASSIVE;
-    const EXCLUSIVE = AMQP_EXCLUSIVE;
-    const AUTODELETE = AMQP_AUTODELETE;
-    const INTERNAL = AMQP_INTERNAL;
-    const NOLOCAL = AMQP_NOLOCAL;
-    const AUTOACK = AMQP_AUTOACK;
-    const IFEMPTY = AMQP_IFEMPTY;
-    const IFUNUSED = AMQP_IFUNUSED;
-    const MANDATORY = AMQP_MANDATORY;
-    const IMMEDIATE = AMQP_IMMEDIATE;
-    const MULTIPLE = AMQP_MULTIPLE;
-    const NOWAIT = AMQP_NOWAIT;
-    const REQUEUE = AMQP_REQUEUE;
-    const EX_TYPE_DIRECT = AMQP_EX_TYPE_DIRECT;
-    const EX_TYPE_FANOUT = AMQP_EX_TYPE_FANOUT;
-    const EX_TYPE_TOPIC = AMQP_EX_TYPE_TOPIC;
-    const EX_TYPE_HEADERS = AMQP_EX_TYPE_HEADERS;
-    const OS_SOCKET_TIMEOUT_ERRNO = AMQP_OS_SOCKET_TIMEOUT_ERRNO;
-    const MAX_CHANNELS = PHP_AMQP_MAX_CHANNELS;
-
-    protected static $classMap = [
-        'raw' => [
-            MessageEncodeStrategy::class => RawMessageEncodeStrategy::class,
-            MessageDecodeStrategy::class => RawMessageDecodeStrategy::class,
-        ],
-        'json' => [
-            MessageEncodeStrategy::class => JsonMessageEncodeStrategy::class,
-            MessageDecodeStrategy::class => JsonMessageDecodeStrategy::class,
-        ],
-    ];
-
     /**
-     * @var Configuration
+     * @var Client
      */
-    public $configuration;
+    public $client;
 
     /**
      * @var string
      */
-    public $messageDataType = 'json';
+    public $name;
 
     /**
-     * @var \AMQPConnection
+     * @var string
      */
-    protected $rawConnection;
+    public $queueName;
+
+    /**
+     * @var string
+     */
+    public $routingKey = '';
+
+    /**
+     * @var int
+     */
+    public $queueFlags = Client::NOPARAM;
+
+    /**
+     * @var array
+     */
+    public $queueBindArguments = [];
+
+    /**
+     * @var string
+     */
+    public $exchangeName;
+
+    /**
+     * @var string
+     */
+    public $exchangeType = Client::EX_TYPE_DIRECT;
+
+    /**
+     * @var int
+     */
+    public $exchangeFlags = Client::NOPARAM;
+
+    /**
+     * @var Channel
+     */
+    protected $channel;
+
+    /**
+     * @var Queue
+     */
+    protected $queue;
+
+    /**
+     * @var Exchange
+     */
+    protected $exchange;
+
+    /**
+     * @inheritDoc
+     */
+    public function __construct(Client $client, $config = [])
+    {
+        $this->client = $client;
+
+        parent::__construct($config);
+    }
 
     /**
      * @inheritDoc
@@ -73,89 +95,91 @@ class Amqp extends Component
     {
         parent::init();
 
-        $classes = ArrayHelper::getValue(static::$classMap, $this->messageDataType);
-
-        if (!$classes) {
-            throw new \RuntimeException(\Yii::t('yii', 'Wrong data type for message ({messageDataType})',
-                ['messageDataType' => $this->messageDataType]));
+        if (!$this->client) {
+            throw new InvalidConfigException(\Yii::t('yii', 'AMQP client should be specified'));
         }
 
-        foreach ($classes as $interface => $class) {
-            \Yii::$container->set($interface, $class);
+        if ($this->name) {
+            $this->queueName = $this->queueName ?: $this->name;
+            $this->exchangeName = $this->exchangeName ?: $this->name;
         }
 
-        $this->configuration = $this->configuration ?: new Configuration();
-        $this->rawConnection = new \AMQPConnection($this->configuration->toAmqpCredentialsArray());
-
-        try {
-            $this->rawConnection->connect();
-        } catch (\AMQPConnectionException $e) {
-            ExceptionHelper::throwRightException($e);
+        if (!$this->exchangeName) {
+            throw new InvalidConfigException(\Yii::t('yii', 'Exchange name should be specified'));
         }
+
+        if (!$this->queueName) {
+            throw new InvalidConfigException(\Yii::t('yii', 'Queue name should be specified'));
+        }
+
+        $this->channel = $this->client->newChannel();
+        $this->exchange = $this->client->newExchange($this->channel);
+        $this->queue = $this->client->newQueue($this->channel);
+
+        $this->exchange->setName($this->exchangeName);
+        $this->exchange->setFlags($this->exchangeFlags);
+        $this->exchange->setType($this->exchangeType);
+
+        $this->exchange->declareExchange();
+
+        $this->queue->setName($this->queueName);
+        $this->queue->setFlags($this->queueFlags);
+
+        $this->queue->declareQueue();
+        $this->queue->bind($this->exchange, $this->routingKey, $this->queueBindArguments);
     }
 
     /**
-     * @return Channel
-     */
-    public function newChannel()
-    {
-        try {
-            return \Yii::createObject([
-                'class' => Channel::class,
-                'amqp' => $this,
-            ]);
-        } catch (\AMQPConnectionException $e) {
-            ExceptionHelper::throwRightException($e);
-        }
-    }
-
-    /**
-     * @param Channel $channel
+     * @param mixed $message
+     * @param int   $flags
+     * @param array $attributes
      *
-     * @return Exchange
+     * @return bool
      */
-    public function newExchange(Channel $channel)
+    public function publish($message, $flags = Client::NOPARAM, array $attributes = [])
     {
-        try {
-            return \Yii::createObject([
-                'class' => Exchange::class,
-                'channel' => $channel,
-            ]);
-        } catch (\Exception $e) {
-            ExceptionHelper::throwRightException($e);
-        }
+        $attributes = ArrayHelper::merge(['app_id' => \Yii::$app ? \Yii::$app->name : ''], $attributes);
+
+        return $this->exchange->publish($message, $this->routingKey, $flags, $attributes);
     }
 
     /**
-     * @param Channel $channel
+     * @param callable $callback
+     * @param int      $flags
+     * @param string   $consumerTag
+     */
+    public function consume(callable $callback, $flags = Client::NOPARAM, $consumerTag = '')
+    {
+        $this->queue->consume($callback, $flags, $consumerTag);
+    }
+
+    /**
+     * @param string $deliveryTag
+     * @param int    $flags
      *
-     * @return Queue
+     * @return bool
      */
-    public function newQueue(Channel $channel)
+    public function ack($deliveryTag, $flags = Client::NOPARAM)
     {
-        try {
-            return \Yii::createObject([
-                'class' => Queue::class,
-                'channel' => $channel,
-            ]);
-        } catch (\Exception $e) {
-            ExceptionHelper::throwRightException($e);
-        }
+        return $this->queue->ack($deliveryTag, $flags);
     }
 
     /**
-     * @return \AMQPConnection
+     * @param string $deliveryTag
+     * @param int    $flags
+     *
+     * @return bool
      */
-    public function getRawConnection()
+    public function nack($deliveryTag, $flags = Client::NOPARAM)
     {
-        return $this->rawConnection;
+        return $this->queue->nack($deliveryTag, $flags);
     }
 
     /**
      * @return bool
      */
-    public function isConnected()
+    public function purge()
     {
-        return $this->rawConnection->isConnected();
+        return $this->queue->purge();
     }
 }

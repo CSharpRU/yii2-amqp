@@ -1,9 +1,9 @@
 <?php
 
-namespace yii\amqp;
+namespace yii\amqp\client;
 
 use yii\amqp\helpers\AmqpHelper;
-use yii\amqp\helpers\ExceptionHelper;
+use yii\amqp\helpers\ClientHelper;
 use yii\base\Object;
 
 /**
@@ -33,7 +33,7 @@ class Queue extends Object
         try {
             $this->rawQueue = new \AMQPQueue($this->channel->getRawChannel());
         } catch (\Exception $e) {
-            ExceptionHelper::throwRightException($e);
+            ClientHelper::throwRightException($e);
         }
     }
 
@@ -120,7 +120,7 @@ class Queue extends Object
         try {
             return $this->rawQueue->declareQueue();
         } catch (\Exception $e) {
-            ExceptionHelper::throwRightException($e);
+            ClientHelper::throwRightException($e);
         }
     }
 
@@ -138,7 +138,7 @@ class Queue extends Object
         try {
             return $this->rawQueue->bind($exchange, $routingKey, $arguments);
         } catch (\Exception $e) {
-            ExceptionHelper::throwRightException($e);
+            ClientHelper::throwRightException($e);
         }
     }
 
@@ -147,7 +147,7 @@ class Queue extends Object
      *
      * @return Envelope|bool
      */
-    public function get($flags = Amqp::NOPARAM)
+    public function get($flags = Client::NOPARAM)
     {
         try {
             $message = $this->rawQueue->get($flags);
@@ -158,7 +158,7 @@ class Queue extends Object
 
             return $message;
         } catch (\Exception $e) {
-            ExceptionHelper::throwRightException($e);
+            ClientHelper::throwRightException($e);
         }
     }
 
@@ -169,7 +169,7 @@ class Queue extends Object
      */
     public function consume(
         callable $callback = null,
-        $flags = Amqp::NOPARAM,
+        $flags = Client::NOPARAM,
         $consumerTag = null
     ) {
         try {
@@ -177,7 +177,7 @@ class Queue extends Object
                 return $callback(Envelope::createFromRaw($envelope), $this);
             }, $flags, $consumerTag);
         } catch (\Exception $e) {
-            ExceptionHelper::throwRightException($e);
+            ClientHelper::throwRightException($e);
         }
     }
 
@@ -187,12 +187,12 @@ class Queue extends Object
      *
      * @return bool
      */
-    public function ack($deliveryTag, $flags = Amqp::NOPARAM)
+    public function ack($deliveryTag, $flags = Client::NOPARAM)
     {
         try {
             return $this->rawQueue->ack($deliveryTag, $flags);
         } catch (\Exception $e) {
-            ExceptionHelper::throwRightException($e);
+            ClientHelper::throwRightException($e);
         }
     }
 
@@ -202,12 +202,12 @@ class Queue extends Object
      *
      * @return bool
      */
-    public function nack($deliveryTag, $flags = Amqp::NOPARAM)
+    public function nack($deliveryTag, $flags = Client::NOPARAM)
     {
         try {
             return $this->rawQueue->nack($deliveryTag, $flags);
         } catch (\Exception $e) {
-            ExceptionHelper::throwRightException($e);
+            ClientHelper::throwRightException($e);
         }
     }
 
@@ -217,12 +217,12 @@ class Queue extends Object
      *
      * @return bool
      */
-    public function reject($deliveryTag, $flags = Amqp::NOPARAM)
+    public function reject($deliveryTag, $flags = Client::NOPARAM)
     {
         try {
             return $this->rawQueue->reject($deliveryTag, $flags);
         } catch (\Exception $e) {
-            ExceptionHelper::throwRightException($e);
+            ClientHelper::throwRightException($e);
         }
     }
 
@@ -234,7 +234,7 @@ class Queue extends Object
         try {
             return $this->rawQueue->purge();
         } catch (\Exception $e) {
-            ExceptionHelper::throwRightException($e);
+            ClientHelper::throwRightException($e);
         }
     }
 
@@ -248,7 +248,7 @@ class Queue extends Object
         try {
             return $this->rawQueue->cancel($consumerTag);
         } catch (\Exception $e) {
-            ExceptionHelper::throwRightException($e);
+            ClientHelper::throwRightException($e);
         }
     }
 
@@ -266,7 +266,7 @@ class Queue extends Object
         try {
             return $this->rawQueue->unbind($exchange, $routingKey, $arguments);
         } catch (\Exception $e) {
-            ExceptionHelper::throwRightException($e);
+            ClientHelper::throwRightException($e);
         }
     }
 
@@ -275,12 +275,12 @@ class Queue extends Object
      *
      * @return int
      */
-    public function delete($flags = Amqp::NOPARAM)
+    public function delete($flags = Client::NOPARAM)
     {
         try {
             return $this->rawQueue->delete($flags);
         } catch (\Exception $e) {
-            ExceptionHelper::throwRightException($e);
+            ClientHelper::throwRightException($e);
         }
     }
 
@@ -293,7 +293,7 @@ class Queue extends Object
     }
 
     /**
-     * @return Amqp
+     * @return Client
      */
     public function getConnection()
     {

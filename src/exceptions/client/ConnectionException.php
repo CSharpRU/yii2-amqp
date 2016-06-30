@@ -1,6 +1,6 @@
 <?php
 
-namespace yii\amqp\exceptions;
+namespace yii\amqp\exceptions\client;
 
 /**
  * Class ConnectionException

@@ -2,17 +2,17 @@
 
 namespace yii\amqp\helpers;
 
-use yii\amqp\exceptions\ChannelException;
-use yii\amqp\exceptions\ConnectionException;
-use yii\amqp\exceptions\ExchangeException;
+use yii\amqp\exceptions\client\ChannelException;
+use yii\amqp\exceptions\client\ConnectionException;
+use yii\amqp\exceptions\client\ExchangeException;
 use yii\helpers\ArrayHelper;
 
 /**
- * Class ExceptionHelper
+ * Class ClientHelper
  *
- * @package yii\amqp\helpers
+ * @package yii\amqp\client\helpers
  */
-class ExceptionHelper
+class ClientHelper
 {
     /**
      * @param \Exception $e

@@ -2,7 +2,7 @@
 
 namespace yii\amqp\helpers;
 
-use yii\amqp\Exchange;
+use yii\amqp\client\Exchange;
 
 /**
  * Class AmqpHelper

@@ -1,7 +1,8 @@
 <?php
 
-namespace yii\amqp;
+namespace yii\amqp\client;
 
+use yii\amqp\client\strategies\MessageEncodeDecodeStrategy;
 use yii\base\Object;
 use yii\helpers\ArrayHelper;
 
@@ -103,14 +104,14 @@ class Envelope extends Object
     public $headers;
 
     /**
-     * @var MessageDecodeStrategy
+     * @var MessageEncodeDecodeStrategy
      */
     protected $decodeStrategy;
 
     /**
      * @inheritDoc
      */
-    public function __construct(MessageDecodeStrategy $decodeStrategy, $config = [])
+    public function __construct(MessageEncodeDecodeStrategy $decodeStrategy, $config = [])
     {
         $this->decodeStrategy = $decodeStrategy;
 

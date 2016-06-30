@@ -1,8 +1,8 @@
 <?php
 
-namespace yii\amqp;
+namespace yii\amqp\client;
 
-use yii\amqp\helpers\ExceptionHelper;
+use yii\amqp\helpers\ClientHelper;
 use yii\base\Object;
 
 /**
@@ -13,7 +13,7 @@ use yii\base\Object;
 class Channel extends Object
 {
     /**
-     * @var Amqp
+     * @var Client
      */
     public $amqp;
 
@@ -32,7 +32,7 @@ class Channel extends Object
         try {
             $this->rawChannel = new \AMQPChannel($this->amqp->getRawConnection());
         } catch (\AMQPConnectionException $e) {
-            ExceptionHelper::throwRightException($e);
+            ClientHelper::throwRightException($e);
         }
     }
 
@@ -56,14 +56,13 @@ class Channel extends Object
      * @param $size
      *
      * @return bool
-     * @throws exceptions\ConnectionException
      */
     public function setPrefetchSize($size)
     {
         try {
             return $this->rawChannel->setPrefetchSize($size);
         } catch (\AMQPConnectionException $e) {
-            ExceptionHelper::throwRightException($e);
+            ClientHelper::throwRightException($e);
         }
     }
 
@@ -79,14 +78,13 @@ class Channel extends Object
      * @param $count
      *
      * @return bool
-     * @throws exceptions\ConnectionException
      */
     public function setPrefetchCount($count)
     {
         try {
             return $this->rawChannel->setPrefetchCount($count);
         } catch (\AMQPConnectionException $e) {
-            ExceptionHelper::throwRightException($e);
+            ClientHelper::throwRightException($e);
         }
     }
 
@@ -103,60 +101,54 @@ class Channel extends Object
      * @param $count
      *
      * @return bool
-     * @throws exceptions\ConnectionException
      */
     public function qos($size, $count)
     {
         try {
             return $this->rawChannel->qos($size, $count);
         } catch (\AMQPConnectionException $e) {
-            ExceptionHelper::throwRightException($e);
+            ClientHelper::throwRightException($e);
         }
     }
 
     /**
      * @return bool
-     * @throws exceptions\ConnectionException
      */
     public function startTransaction()
     {
         try {
             return $this->rawChannel->startTransaction();
         } catch (\AMQPConnectionException $e) {
-            ExceptionHelper::throwRightException($e);
+            ClientHelper::throwRightException($e);
         }
     }
 
     /**
      * @return bool
-     * @throws exceptions\ChannelException
-     * @throws exceptions\ConnectionException
      */
     public function commitTransaction()
     {
         try {
             return $this->rawChannel->commitTransaction();
         } catch (\Exception $e) {
-            ExceptionHelper::throwRightException($e);
+            ClientHelper::throwRightException($e);
         }
     }
 
     /**
      * @return bool
-     * @throws exceptions\ChannelException
-     * @throws exceptions\ConnectionException
      */
     public function rollbackTransaction()
     {
         try {
             return $this->rawChannel->rollbackTransaction();
         } catch (\Exception $e) {
-            ExceptionHelper::throwRightException($e);
+            ClientHelper::throwRightException($e);
         }
     }
 
     /**
-     * @return Amqp
+     * @return Client
      */
     public function getConnection()
     {

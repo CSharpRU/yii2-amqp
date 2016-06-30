@@ -1,142 +1,41 @@
 <?php
 
 use yii\amqp\Amqp;
-use yii\amqp\Configuration;
-use yii\amqp\Envelope;
+use yii\amqp\client\Client;
+use yii\amqp\client\Envelope;
 
 /**
  * Class AmqpTest
  */
 class AmqpTest extends TestCase
 {
-    const QUEUE_NAME = 'yii2.amqp.test_queue';
-    const TIMEOUT = 5;
-
     /**
      * @var Amqp
      */
     private $amqp;
 
-    public function testConnection()
+    public function testPublish()
     {
-        $this->assertNotNull($this->amqp);
-        $this->assertTrue($this->amqp->isConnected());
+        $message = new TestMessage();
+
+        $message->data = ['testArray'];
+
+        $this->assertTrue($this->amqp->publish($message));
+        $this->assertTrue($this->amqp->purge());
     }
 
-    public function testNewChannel()
+    public function testPublishAndConsume()
     {
-        $channel = $this->amqp->newChannel();
+        $message = new TestMessage();
 
-        $this->assertNotNull($channel);
-        $this->assertTrue($channel->isConnected());
-        $this->assertNotEmpty($channel->getChannelId());
-    }
+        $message->data = ['testArray', 'timestamp' => time()];
 
-    public function testNewExchange()
-    {
-        $channel = $this->amqp->newChannel();
-        $exchange = $this->amqp->newExchange($channel);
+        $this->assertTrue($this->amqp->publish($message));
 
-        $this->assertNotNull($exchange);
-    }
+        $this->amqp->consume(function (Envelope $envelope) use ($message) {
+            $this->assertEquals($envelope->body, $message);
 
-    public function testExchangeDeclareTypeDirect()
-    {
-        $this->declareExchangeAndCheckIt();
-    }
-
-    /**
-     * @param string $name
-     * @param string $type
-     * @param int    $flags
-     *
-     * @return \yii\amqp\Exchange
-     */
-    private function declareExchangeAndCheckIt($name = null, $type = Amqp::EX_TYPE_DIRECT, $flags = Amqp::DURABLE)
-    {
-        $channel = $this->amqp->newChannel();
-        $exchange = $this->amqp->newExchange($channel);
-
-        $exchange->setName($this->getNameForEntity($name, $type));
-        $exchange->setType($type);
-        $exchange->setFlags($flags);
-
-        $this->assertNotNull($exchange);
-        $this->assertTrue($exchange->declareExchange());
-        $this->assertEquals($type, $exchange->getType());
-        $this->assertEquals($flags, $exchange->getFlags());
-
-        return $exchange;
-    }
-
-    /**
-     * @param bool $name
-     * @param      $type
-     *
-     * @return string
-     */
-    private function getNameForEntity($name, $type = Amqp::EX_TYPE_DIRECT)
-    {
-        return $name ?: sprintf('%s_%s', self::QUEUE_NAME, $type);
-    }
-
-    public function testExchangeDeclareTypeFanout()
-    {
-        $this->declareExchangeAndCheckIt(Amqp::EX_TYPE_FANOUT);
-    }
-
-    public function testExchangeDeclareTypeHeaders()
-    {
-        $this->declareExchangeAndCheckIt(Amqp::EX_TYPE_HEADERS);
-    }
-
-    public function testExchangeDeclareTypeTopic()
-    {
-        $this->declareExchangeAndCheckIt(Amqp::EX_TYPE_TOPIC);
-    }
-
-    public function testQueueDeclareTypeDirect()
-    {
-        $this->declareQueueAndCheckIt();
-    }
-
-    /**
-     * @param string $name
-     * @param int    $flags
-     *
-     * @return \yii\amqp\Queue
-     */
-    private function declareQueueAndCheckIt($name = null, $flags = Amqp::DURABLE)
-    {
-        $channel = $this->amqp->newChannel();
-        $queue = $this->amqp->newQueue($channel);
-
-        $queue->setName($this->getNameForEntity($name));
-        $queue->setFlags($flags);
-
-        $this->assertNotNull($queue);
-        $this->assertGreaterThanOrEqual(0, $queue->declareQueue());
-        $this->assertEquals($flags, $queue->getFlags());
-
-        return $queue;
-    }
-
-    public function testWriteToExchangeAndReadFromQueue()
-    {
-        $exchange = $this->declareExchangeAndCheckIt();
-        $queue = $this->declareQueueAndCheckIt();
-
-        $queue->bind($exchange);
-
-        $data = ['testArray' => 'Cool!', 'timestamp' => time()];
-
-        $exchange->publish($data);
-
-        $queue->consume(function (Envelope $envelope) use ($queue, $data) {
-            $this->assertNotNull($envelope);
-            $this->assertEquals($data, $envelope->body);
-
-            $queue->ack($envelope->deliveryTag);
+            $this->amqp->ack($envelope->deliveryTag);
 
             return false;
         });
@@ -149,12 +48,23 @@ class AmqpTest extends TestCase
     {
         parent::setUp();
 
-        $this->amqp = new Amqp([
-            'configuration' => new Configuration([
-                'readTimeout' => self::TIMEOUT,
-                'writeTimeout' => self::TIMEOUT,
-                'connectTimeout' => self::TIMEOUT,
-            ]),
-        ]);
+        $this->amqp = new Amqp(new Client([
+            'readTimeout' => static::TIMEOUT,
+            'writeTimeout' => static::TIMEOUT,
+            'connectTimeout' => static::TIMEOUT,
+        ]), ['name' => static::QUEUE_NAME]);
     }
+}
+
+class TestMessage
+{
+    /**
+     * @var array
+     */
+    public $data = [];
+
+    /**
+     * @var string
+     */
+    public $type = 'test';
 }

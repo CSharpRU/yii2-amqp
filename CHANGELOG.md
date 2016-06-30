@@ -1,6 +1,11 @@
 Yii Framework 2 AMQP plugin Change Log
 =============================================
 
+2.1.1 June 30, 2016
+-----------------------
+
+- Extend all exceptions from Yii2 Base Exception
+
 2.1.0 June 30, 2016
 -----------------------
 

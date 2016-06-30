@@ -2,7 +2,6 @@
 
 namespace yii\amqp;
 
-use Codeception\Module\Cli;
 use yii\amqp\client\Channel;
 use yii\amqp\client\Client;
 use yii\amqp\client\Exchange;

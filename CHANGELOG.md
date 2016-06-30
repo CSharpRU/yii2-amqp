@@ -1,15 +1,20 @@
 Yii Framework 2 AMQP plugin Change Log
 =============================================
 
+2.2.0 June 30, 2016
+-----------------------
+
+- Ability to select message type for each queue.
+
 2.1.1 June 30, 2016
 -----------------------
 
-- Extend all exceptions from Yii2 Base Exception
+- Extend all exceptions from Yii2 Base Exception.
 
 2.1.0 June 30, 2016
 -----------------------
 
-- Removed explicit connection to avoid max connections overflow
+- Removed explicit connection to avoid max connections overflow.
 
 2.0.0 June 30, 2016
 -----------------------

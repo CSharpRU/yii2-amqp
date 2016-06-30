@@ -106,24 +106,16 @@ class Envelope extends Object
     /**
      * @var MessageEncodeDecodeStrategy
      */
-    protected $decodeStrategy;
+    public $decodeStrategy;
 
     /**
-     * @inheritDoc
-     */
-    public function __construct(MessageEncodeDecodeStrategy $decodeStrategy, $config = [])
-    {
-        $this->decodeStrategy = $decodeStrategy;
-
-        parent::__construct($config);
-    }
-
-    /**
-     * @param \AMQPEnvelope $message
+     * @param \AMQPEnvelope                    $message
+     * @param MessageEncodeDecodeStrategy|null $decodeStrategy
      *
      * @return static
+     * @throws \yii\base\InvalidConfigException
      */
-    public static function createFromRaw(\AMQPEnvelope $message)
+    public static function createFromRaw(\AMQPEnvelope $message, $decodeStrategy = null)
     {
         return \Yii::createObject([
             'class' => static::class,
@@ -145,6 +137,7 @@ class Envelope extends Object
             'replyTo' => $message->getReplyTo(),
             'correlationId' => $message->getCorrelationId(),
             'headers' => $message->getHeaders(),
+            'decodeStrategy' => $decodeStrategy,
         ]);
     }
 
@@ -155,13 +148,14 @@ class Envelope extends Object
     {
         parent::init();
 
-        $this->body = $this->decodeStrategy->decode($this->body);
+        $this->body = $this->decodeStrategy ? $this->decodeStrategy->decode($this->body) : $this->body;
     }
 
     /**
      * @param $key
      *
      * @return mixed
+     * @throws \yii\base\InvalidParamException
      */
     public function getHeader($key)
     {

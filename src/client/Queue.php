@@ -2,6 +2,7 @@
 
 namespace yii\amqp\client;
 
+use yii\amqp\client\strategies\MessageEncodeDecodeStrategy;
 use yii\amqp\helpers\AmqpHelper;
 use yii\amqp\helpers\ClientHelper;
 use yii\base\Object;
@@ -19,9 +20,24 @@ class Queue extends Object
     public $channel;
 
     /**
+     * @var MessageEncodeDecodeStrategy
+     */
+    protected $decodeStrategy;
+
+    /**
      * @var \AMQPQueue
      */
     protected $rawQueue;
+
+    /**
+     * @inheritDoc
+     */
+    public function __construct(MessageEncodeDecodeStrategy $encodeStrategy, $config = [])
+    {
+        parent::__construct($config);
+
+        $this->decodeStrategy = $encodeStrategy;
+    }
 
     /**
      * @inheritDoc
@@ -153,7 +169,7 @@ class Queue extends Object
             $message = $this->rawQueue->get($flags);
 
             if ($message instanceof \AMQPEnvelope) {
-                $message = Envelope::createFromRaw($message);
+                $message = Envelope::createFromRaw($message, $this->decodeStrategy);
             }
 
             return $message;
@@ -174,7 +190,7 @@ class Queue extends Object
     ) {
         try {
             $this->rawQueue->consume(function (\AMQPEnvelope $envelope) use ($callback) {
-                return $callback(Envelope::createFromRaw($envelope), $this);
+                return $callback(Envelope::createFromRaw($envelope, $this->decodeStrategy), $this);
             }, $flags, $consumerTag);
         } catch (\Exception $e) {
             ClientHelper::throwRightException($e);

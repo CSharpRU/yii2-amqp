@@ -5,6 +5,7 @@ namespace yii\amqp\helpers;
 use yii\amqp\exceptions\client\ChannelException;
 use yii\amqp\exceptions\client\ConnectionException;
 use yii\amqp\exceptions\client\ExchangeException;
+use yii\amqp\exceptions\client\QueueException;
 use yii\helpers\ArrayHelper;
 
 /**
@@ -28,6 +29,7 @@ class ClientHelper
             \AMQPConnectionException::class => ConnectionException::class,
             \AMQPChannelException::class => ChannelException::class,
             \AMQPExchangeException::class => ExchangeException::class,
+            \AMQPQueueException::class => QueueException::class,
         ];
 
         $exceptionName = get_class($e);

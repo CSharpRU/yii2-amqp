@@ -10,9 +10,9 @@ namespace yii\amqp\client\strategies;
 interface MessageEncodeDecodeStrategy
 {
     /**
-     * @param $message
+     * @param mixed $message
      *
-     * @return mixed
+     * @return string
      */
     public function encode($message);
     

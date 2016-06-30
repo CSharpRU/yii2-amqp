@@ -40,6 +40,10 @@ class Client extends Component
     const OS_SOCKET_TIMEOUT_ERRNO = AMQP_OS_SOCKET_TIMEOUT_ERRNO;
     const MAX_CHANNELS = PHP_AMQP_MAX_CHANNELS;
 
+    const MESSAGE_TYPE_RAW = 'raw';
+    const MESSAGE_TYPE_JSON = 'json';
+    const MESSAGE_TYPE_SERIALIZE = 'serialize';
+
     /**
      * Class map for DI container. Depends on message type.
      *
@@ -47,9 +51,9 @@ class Client extends Component
      * @var array
      */
     protected static $classMap = [
-        'raw' => [MessageEncodeDecodeStrategy::class => RawMessageEncodeDecodeStrategy::class],
-        'json' => [MessageEncodeDecodeStrategy::class => JsonMessageEncodeDecodeStrategy::class],
-        'serialize' => [MessageEncodeDecodeStrategy::class => SerializeMessageEncodeStrategy::class],
+        self::MESSAGE_TYPE_RAW => RawMessageEncodeDecodeStrategy::class,
+        self::MESSAGE_TYPE_JSON => JsonMessageEncodeDecodeStrategy::class,
+        self::MESSAGE_TYPE_SERIALIZE => SerializeMessageEncodeStrategy::class,
     ];
 
     /**
@@ -98,6 +102,11 @@ class Client extends Component
     public $messageType = 'serialize';
 
     /**
+     * @var MessageEncodeDecodeStrategy
+     */
+    protected $messageEncodeDecodeStrategy;
+
+    /**
      * @var \AMQPConnection
      */
     protected $rawConnection;
@@ -109,27 +118,8 @@ class Client extends Component
     {
         parent::init();
 
-        $this->initContainer();
-
         $this->rawConnection = new \AMQPConnection($this->buildAmqpCredentialsArray());
-    }
-
-    private function initContainer()
-    {
-        if (\Yii::$container->has(MessageEncodeDecodeStrategy::class)) {
-            return; // if it was added outside, just ignore our class map
-        }
-
-        $classes = ArrayHelper::getValue(static::$classMap, $this->messageType);
-
-        if (!$classes) {
-            throw new \RuntimeException(\Yii::t('yii', 'Wrong data type for message ({messageDataType})',
-                ['messageDataType' => $this->messageType]));
-        }
-
-        foreach ($classes as $interface => $class) {
-            \Yii::$container->set($interface, $class);
-        }
+        $this->messageEncodeDecodeStrategy = $this->getDefaultMessageEncodeDecodeStrategy();
     }
 
     /**
@@ -150,6 +140,17 @@ class Client extends Component
     }
 
     /**
+     * @return null|object
+     * @throws \yii\base\InvalidConfigException
+     */
+    private function getDefaultMessageEncodeDecodeStrategy()
+    {
+        return \Yii::$container->has(MessageEncodeDecodeStrategy::class) ?
+            \Yii::$container->get(MessageEncodeDecodeStrategy::class) :
+            null;
+    }
+
+    /**
      * @return Channel
      */
     public function newChannel()
@@ -166,33 +167,50 @@ class Client extends Component
 
     /**
      * @param Channel $channel
+     * @param string  $messageType
      *
      * @return Exchange
      */
-    public function newExchange(Channel $channel)
+    public function newExchange(Channel $channel, $messageType = null)
     {
         try {
-            return \Yii::createObject([
-                'class' => Exchange::class,
-                'channel' => $channel,
-            ]);
+            return new Exchange($this->getMessageEncodeDecodeStrategy($messageType), ['channel' => $channel]);
         } catch (\Exception $e) {
             ClientHelper::throwRightException($e);
         }
     }
 
     /**
+     * @param string $type
+     *
+     * @return MessageEncodeDecodeStrategy
+     */
+    private function getMessageEncodeDecodeStrategy($type = null)
+    {
+        if (!$type && $this->messageEncodeDecodeStrategy) {
+            return $this->messageEncodeDecodeStrategy;
+        }
+
+        $type = $type ?: $this->messageType;
+        $className = ArrayHelper::getValue(static::$classMap, $type);
+
+        if (!$className) {
+            throw new \RuntimeException(\Yii::t('yii', 'Wrong data type for message ({type})', ['type' => $type]));
+        }
+
+        return new $className();
+    }
+
+    /**
      * @param Channel $channel
+     * @param string  $messageType
      *
      * @return Queue
      */
-    public function newQueue(Channel $channel)
+    public function newQueue(Channel $channel, $messageType = null)
     {
         try {
-            return \Yii::createObject([
-                'class' => Queue::class,
-                'channel' => $channel,
-            ]);
+            return new Queue($this->getMessageEncodeDecodeStrategy($messageType), ['channel' => $channel]);
         } catch (\Exception $e) {
             ClientHelper::throwRightException($e);
         }

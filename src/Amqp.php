@@ -63,6 +63,11 @@ class Amqp extends Component
     public $exchangeFlags = Client::NOPARAM;
 
     /**
+     * @var string
+     */
+    public $messageType = Client::MESSAGE_TYPE_SERIALIZE;
+
+    /**
      * @var Channel
      */
     protected $channel;
@@ -116,8 +121,8 @@ class Amqp extends Component
         }
 
         $this->channel = $this->client->newChannel();
-        $this->exchange = $this->client->newExchange($this->channel);
-        $this->queue = $this->client->newQueue($this->channel);
+        $this->exchange = $this->client->newExchange($this->channel, $this->messageType);
+        $this->queue = $this->client->newQueue($this->channel, $this->messageType);
 
         $this->exchange->setName($this->exchangeName);
         $this->exchange->setFlags($this->exchangeFlags);

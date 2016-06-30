@@ -3,6 +3,7 @@
 use yii\amqp\Amqp;
 use yii\amqp\client\Client;
 use yii\amqp\client\Envelope;
+use yii\helpers\ArrayHelper;
 
 /**
  * Class AmqpTest
@@ -41,6 +42,47 @@ class AmqpTest extends TestCase
         });
     }
 
+    public function testPublishAndConsumeDifferentType()
+    {
+        $amqp = $this->getAmqp(Client::MESSAGE_TYPE_JSON);
+        $message = new TestMessage();
+
+        $message->data = ['testArray', 'timestamp' => time()];
+
+        $this->assertTrue($amqp->publish($message));
+
+        $amqp->consume(function (Envelope $envelope) use ($message, $amqp) {
+            $this->assertEquals($envelope->body, ArrayHelper::toArray($message));
+
+            $amqp->ack($envelope->deliveryTag);
+
+            return false;
+        });
+    }
+
+    /**
+     * @param string $messageType
+     *
+     * @return Amqp
+     */
+    private function getAmqp($messageType = Client::MESSAGE_TYPE_SERIALIZE)
+    {
+        static $client;
+
+        if (!$client) {
+            $client = new Client([
+                'readTimeout' => static::TIMEOUT,
+                'writeTimeout' => static::TIMEOUT,
+                'connectTimeout' => static::TIMEOUT,
+            ]);
+        }
+
+        return new Amqp($client, [
+            'name' => static::QUEUE_NAME,
+            'messageType' => $messageType,
+        ]);
+    }
+
     /**
      * @inheritDoc
      */
@@ -48,11 +90,7 @@ class AmqpTest extends TestCase
     {
         parent::setUp();
 
-        $this->amqp = new Amqp(new Client([
-            'readTimeout' => static::TIMEOUT,
-            'writeTimeout' => static::TIMEOUT,
-            'connectTimeout' => static::TIMEOUT,
-        ]), ['name' => static::QUEUE_NAME]);
+        $this->amqp = $this->getAmqp();
     }
 }
 

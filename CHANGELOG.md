@@ -1,6 +1,11 @@
 Yii Framework 2 AMQP plugin Change Log
 =============================================
 
+3.0.0 November 17, 2017
+-----------------------
+
+- Yii2 has been updated and yii\base\Object is now yii\base\BaseObject for compatibility with PHP 7.2.
+
 2.2.1 June 30, 2016
 -----------------------
 

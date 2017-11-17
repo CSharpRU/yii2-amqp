@@ -3,7 +3,7 @@
 namespace yii\amqp\client;
 
 use yii\amqp\client\strategies\MessageEncodeDecodeStrategy;
-use yii\base\Object;
+use yii\base\BaseObject;
 use yii\helpers\ArrayHelper;
 
 /**
@@ -11,7 +11,7 @@ use yii\helpers\ArrayHelper;
  *
  * @package yii\amqp
  */
-class Envelope extends Object
+class Envelope extends BaseObject
 {
     /**
      * @var mixed

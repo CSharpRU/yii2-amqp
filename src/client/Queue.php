@@ -5,14 +5,14 @@ namespace yii\amqp\client;
 use yii\amqp\client\strategies\MessageEncodeDecodeStrategy;
 use yii\amqp\helpers\AmqpHelper;
 use yii\amqp\helpers\ClientHelper;
-use yii\base\Object;
+use yii\base\BaseObject;
 
 /**
  * Class Queue
  *
  * @package yii\amqp
  */
-class Queue extends Object
+class Queue extends BaseObject
 {
     /**
      * @var Channel

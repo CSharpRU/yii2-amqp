@@ -3,14 +3,14 @@
 namespace yii\amqp\client;
 
 use yii\amqp\helpers\ClientHelper;
-use yii\base\Object;
+use yii\base\BaseObject;
 
 /**
  * Class Channel
  *
  * @package yii\amqp
  */
-class Channel extends Object
+class Channel extends BaseObject
 {
     /**
      * @var Client

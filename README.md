@@ -1,7 +1,7 @@
 Yii 2 AMQP
 ========================
 
-![Build](https://travis-ci.org/CSharpRU/yii2-amqp.svg?branch=master)
+[![Master](https://travis-ci.org/CSharpRU/yii2-amqp.svg?branch=master)](https://travis-ci.org/CSharpRU/yii2-amqp)
 
 This is AMQP extension for [Yii framework 2.0](http://www.yiiframework.com).
 
